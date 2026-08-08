@@ -1,0 +1,26 @@
+// imports
+const express = require("express");
+const app = express();
+const dotenv = require("dotenv").config();
+const morgan = require('morgan');
+const cors = require('cors');
+
+// Routes Import
+const authRoutes = require('./routes/auth.routes');
+
+// Middleware
+app.use(
+
+    cors({
+        origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    })
+
+);
+
+app.use(express.json());
+app.use(morgan('dev'));
+
+// Routes
+app.use('/auth', authRoutes);
+
+module.exports = app;
