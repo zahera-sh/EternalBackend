@@ -24,12 +24,13 @@ const notificationSchema = new mongoose.Schema({
     },
 
     sentAt: {
-        type: Date
+        type: Date,
+        default: Date.now
     }
 
 }, { timestamps: true });
 
 
-const Notification = mongoose.model("Notification", itemSchema);
+const Notification = mongoose.model("Notification", notificationSchema);
 
 module.exports = Notification;
