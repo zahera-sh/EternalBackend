@@ -1,8 +1,37 @@
 const Item = require("../models/Item");
 const router = require("express").Router();
+const cloudinary = require('../middleware/cloudinary')
+
+const uploadImage = (fileBuffer) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'eternal/items',
+        resource_type: 'image',
+      },
+      (error, result) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve(result)
+        }
+      }
+    )
+
+    uploadStream.end(fileBuffer)
+  })
+}
 
 async function createItem(req, res) {
+
   try {
+    
+    if (!req.file) {
+      return res.render('error.ejs', {
+        msg: 'Please select an image.',
+      })
+    }
+    
     const {
       title,
       description,
@@ -13,16 +42,22 @@ async function createItem(req, res) {
       startingPrice,
     } = req.body;
 
+    const uploadedImage = await uploadImage(req.file.buffer)
+
     const createdItem = await Item.create({
       title,
       description,
-      image,
+      image: {
+        url: uploadedImage.secure_url,
+        publicId: uploadedImage.public_id,
+      },
       category,
       auctionStart,
       auctionEnd,
       startingPrice,
       owner: req.user._id,
     });
+
 
     res.status(201).json(createdItem);
   } catch (err) {
@@ -33,7 +68,7 @@ async function createItem(req, res) {
 
 async function getAllItems(req, res) {
   try {
-    const allItems = await Item.find({ isDeleted: false, status: "Active" });
+    const allItems = await Item.find({ isDeleted: false });
 
     res.status(200).json(allItems);
   } catch (err) {
@@ -43,7 +78,7 @@ async function getAllItems(req, res) {
 
 async function getItemById(req, res) {
   try {
-    const item = await Item.findOne({ _id: req.params.id, isDeleted: false });
+    const item = await Item.findOne({ _id: req.params.id, isDeleted: false }).populate("owner", "username");
 
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
