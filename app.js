@@ -9,6 +9,7 @@ const cors = require("cors");
 const authRoutes = require("./routes/auth.routes");
 const itemRoutes = require("./controllers/items.controller");
 const bidRoutes = require("./routes/Bid.routes");
+const notiRoutes = require('./routes/notification.routes')
 
 const dns = require("dns");
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
@@ -26,5 +27,7 @@ app.use(morgan("dev"));
 app.use("/auth", authRoutes);
 app.use("/items", itemRoutes);
 app.use("/bid", bidRoutes);
+app.use("/item", itemRoutes);
+app.use("/Notification", notiRoutes);
 
 module.exports = app;
