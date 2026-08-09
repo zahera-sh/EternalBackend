@@ -8,17 +8,16 @@ const cors = require("cors");
 // Routes Import
 const authRoutes = require("./routes/auth.routes");
 const itemRoutes = require("./controllers/items.controller");
+const bidRoutes = require("./routes/Bid.routes");
 const notiRoutes = require('./routes/notification.routes')
 
-const dns = require("dns")
-dns.setServers(["8.8.8.8", "1.1.1.1"])
+const dns = require("dns");
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
 // Middleware
 app.use(
-
-    cors({
-        origin: process.env.CLIENT_URL || "http://localhost:5173",
-    })
-
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+  }),
 );
 
 app.use(express.json());
@@ -26,6 +25,8 @@ app.use(morgan("dev"));
 
 // Routes
 app.use("/auth", authRoutes);
+app.use("/items", itemRoutes);
+app.use("/bid", bidRoutes);
 app.use("/item", itemRoutes);
 app.use("/Notification", notiRoutes);
 

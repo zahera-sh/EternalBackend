@@ -1,36 +1,35 @@
 const mongoose = require("mongoose");
 
-
-const bidSchema = new mongoose.Schema({
-
+const bidSchema = new mongoose.Schema(
+  {
     item: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Item"
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Item",
     },
 
     bidder: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
 
     amount: {
-        type: Number,
-        min: 1
+      type: Number,
+      min: 1,
     },
 
     isAutoBid: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
 
     maxBidLimit: {
-        type: Number,
-        default: null
-    }
+      type: Number,
+      default: null,
+    },
+  },
+  { timestamps: true },
+);
 
-}, { timestamps: true });
-
-
-const Bid = mongoose.model("Bid", itemSchema);
+const Bid = mongoose.model("Bid", bidSchema);
 
 module.exports = Bid;
