@@ -3,17 +3,18 @@ const verifyToken = require("../middleware/verifyToken");
 const itemsController = require(`../controllers/items.controller`);
 
 
-router.post("/", verifyToken, createItem);
+// router.post("/", verifyToken, createItem);
+router.post("/", itemsController.createItem);
 
-router.get("/", getAllItems);
+router.get("/", itemsController.getAllItems);
 
-router.get("/my-items", verifyToken, getMyItems);
+router.get("/my-items", verifyToken, itemsController.getMyItems);
 
-router.get("/:id", getItemById);
+router.get("/:id", itemsController.getItemById);
 
-router.put("/:id", verifyToken, updateItem);
+router.put("/:id", verifyToken, itemsController.updateItem);
 
-router.delete("/:id", verifyToken, deleteItem);
+router.delete("/:id", verifyToken, itemsController.deleteItem);
 
 
 module.exports = router;

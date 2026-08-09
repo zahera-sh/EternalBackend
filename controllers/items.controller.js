@@ -109,4 +109,4 @@ async function deleteItem(req, res) {
   }
 }
 
-module.exports = router;
+module.exports = { createItem, getAllItems, getItemById, getMyItems, updateItem, deleteItem };

@@ -7,7 +7,7 @@ const cors = require("cors");
 
 // Routes Import
 const authRoutes = require("./routes/auth.routes");
-const itemRoutes = require("./controllers/items.controller");
+const itemRoutes = require("./routes/item.routes");
 const bidRoutes = require("./routes/Bid.routes");
 const notiRoutes = require('./routes/notification.routes')
 
@@ -27,7 +27,7 @@ app.use(morgan("dev"));
 app.use("/auth", authRoutes);
 app.use("/items", itemRoutes);
 app.use("/bid", bidRoutes);
-app.use("/item", itemRoutes);
+// app.use("/item", itemRoutes);
 app.use("/Notification", notiRoutes);
 
 module.exports = app;
