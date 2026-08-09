@@ -5,7 +5,7 @@ async function isAdmin(req, res, next) {
 
     try {
 
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user._id);
 
         if (!user) {
             return res.status(404).json({
@@ -13,7 +13,7 @@ async function isAdmin(req, res, next) {
             });
         }
 
-        if (user.role !== "admin") {
+        if (user.role !== "Admin") {
             return res.status(403).json({
                 message: "Unauthorized."
             });
