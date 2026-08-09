@@ -78,7 +78,7 @@ async function getAllItems(req, res) {
 
 async function getItemById(req, res) {
   try {
-    const item = await Item.findOne({ _id: req.params.id, isDeleted: false });
+    const item = await Item.findOne({ _id: req.params.id, isDeleted: false }).populate("owner", "username");
 
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
