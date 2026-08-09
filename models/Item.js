@@ -40,7 +40,7 @@ const itemSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum: ["Active", "Ended", "Cancelled", "Sold"],
+        enum: ["Active", "Ended", "Cancelled", "Sold", "Starting Soon"],
         default: "Active"
     },
 
