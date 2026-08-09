@@ -16,5 +16,4 @@ router.put("/:id", verifyToken, itemsController.updateItem);
 
 router.delete("/:id", verifyToken, itemsController.deleteItem);
 
-
 module.exports = router;

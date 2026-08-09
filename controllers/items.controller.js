@@ -68,7 +68,7 @@ async function createItem(req, res) {
 
 async function getAllItems(req, res) {
   try {
-    const allItems = await Item.find({ isDeleted: false, status: "Active" });
+    const allItems = await Item.find({ isDeleted: false });
 
     res.status(200).json(allItems);
   } catch (err) {
