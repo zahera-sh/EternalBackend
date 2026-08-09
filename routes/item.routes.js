@@ -1,10 +1,10 @@
 const router = require("express").Router();
 const verifyToken = require("../middleware/verifyToken");
 const itemsController = require(`../controllers/items.controller`);
-
+const upload = require('../middleware/multer')
 
 // router.post("/", verifyToken, createItem);
-router.post("/", itemsController.createItem);
+router.post("/", upload.single('image'), itemsController.createItem);
 
 router.get("/", itemsController.getAllItems);
 
