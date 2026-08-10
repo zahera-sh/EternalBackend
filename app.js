@@ -11,6 +11,7 @@ const itemRoutes = require("./routes/item.routes");
 const bidRoutes = require("./routes/Bid.routes");
 const notiRoutes = require("./routes/notification.routes");
 const adminRoutes = require('./routes/admin.routes')
+const userRoutes = require("./routes/user.routes");
 
 const dns = require("dns");
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
@@ -30,5 +31,6 @@ app.use("/items", itemRoutes);
 app.use("/bid", bidRoutes);
 app.use("/Notification", notiRoutes);
 app.use('/admin', adminRoutes)
+app.use('/user', userRoutes);
 
 module.exports = app;
