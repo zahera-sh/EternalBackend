@@ -5,6 +5,7 @@ const upload = require('../middleware/multer')
 
 router.post("/", upload.single('image'), verifyToken, itemsController.createItem);
 router.get("/", itemsController.getAllItems);
+router.get("/filter", itemsController.filterItems);
 router.get("/my-items", verifyToken, itemsController.getMyItems);
 router.get("/:id", itemsController.getItemById);
 router.delete("/:id", verifyToken, itemsController.deleteItem);
