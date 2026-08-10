@@ -147,6 +147,28 @@ async function UnfavItem(req, res) {
 
 }
 
+async function filterItems(req, res) {
+    try {
+        const filter = {};
+
+        if (req.query.category) {
+            filter.category = req.query.category;
+        }
+
+        if (req.query.title) {
+            filter.title = { $regex: req.query.title, $options: "i" };
+        }
+
+        console.log(filter);
+
+        const allItems = await Item.find({ ...filter, isDeleted: false }).populate("owner");
+
+        res.status(200).json(allItems);
+
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+}
 
 module.exports = {
     createItem,
@@ -155,7 +177,8 @@ module.exports = {
     getMyItems,
     deleteItem,
     favItem,
-    UnfavItem
+    UnfavItem,
+    filterItems
 };
 
 // async function updateItem(req, res) {
