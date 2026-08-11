@@ -1,76 +1,56 @@
 const Bid = require("../models/Bid");
 const Item = require("../models/Item");
+const AutoBid = require("../models/AutoBid");
+
 const MinIncr = 100;
 
 async function processAutoBids(itemId, io) {
-  try {
-    const autoBids = await Bid.find({
-      item: itemId,
-      isAutoBid: true,
-    }).sort({ maxBidLimit: -1, createdAt: 1 });
+  const autoBids = await AutoBid.find({ item: itemId }).sort({
+    maxLimit: -1,
+    createdAt: 1,
+  });
 
-    if (autoBids.length < 2) return;
+  if (autoBids.length === 0) return;
 
-    const topAutoBid = autoBids[0]; //(Winner)
-    const runnerUpAutoBid = autoBids[1]; //  (Loser)
+  let continueBidding = true;
 
-    // If top 2 auto-bids belong to the same user, stop
-    if (String(topAutoBid.bidder) === String(runnerUpAutoBid.bidder)) return;
+  while (continueBidding) {
+    continueBidding = false;
 
-    const highestCurrentBid = await Bid.findOne({ item: itemId }).sort({
-      amount: -1,
-    });
-    const currentPrice = highestCurrentBid
-      ? Number(highestCurrentBid.amount)
-      : 0;
+    // Get latest current leading bid
+    const highestBid = await Bid.findOne({ item: itemId }).sort({ amount: -1 });
+    const currentPrice = highestBid ? Number(highestBid.amount) : 0;
+    const currentLeaderId = highestBid
+      ? String(highestBid.bidder._id || highestBid.bidder)
+      : null;
 
-    const proposedWinnerPrice = Math.min(
-      Number(runnerUpAutoBid.maxBidLimit) + MinIncr,
-      Number(topAutoBid.maxBidLimit),
+    const challenger = autoBids.find(
+      (ab) => String(ab.user) !== currentLeaderId,
     );
 
-    if (proposedWinnerPrice <= currentPrice) return;
+    if (!challenger) break;
 
-    const loserBid = await Bid.create({
-      item: itemId,
-      bidder: runnerUpAutoBid.bidder,
-      amount: Number(runnerUpAutoBid.maxBidLimit),
-      isAutoBid: true,
-      maxBidLimit: runnerUpAutoBid.maxBidLimit,
-    });
-    await loserBid.populate("bidder", "username");
+    const nextRequiredPrice = currentPrice + MinIncr;
 
-    const winnerBid = await Bid.create({
-      item: itemId,
-      bidder: topAutoBid.bidder,
-      amount: proposedWinnerPrice,
-      isAutoBid: true,
-      maxBidLimit: topAutoBid.maxBidLimit,
-    });
-    await winnerBid.populate("bidder", "username");
+    // Verify afford the $100 increment step
+    if (nextRequiredPrice <= Number(challenger.maxLimit)) {
+      const stepBid = await Bid.create({
+        item: itemId,
+        bidder: challenger.user,
+        amount: nextRequiredPrice,
+        isAutoBid: true,
+        maxBidLimit: challenger.maxLimit,
+      });
 
-    await Item.findByIdAndUpdate(itemId, { currentPrice: proposedWinnerPrice });
+      await stepBid.populate("bidder", "username");
+      await Item.findByIdAndUpdate(itemId, { currentPrice: nextRequiredPrice });
 
-    if (io) {
-      const room = String(itemId);
-      io.to(room).emit("bid_updated", loserBid);
-      io.to(room).emit("bid_updated", winnerBid);
+      if (io) {
+        io.to(String(itemId)).emit("bid_updated", stepBid);
+      }
+
+      continueBidding = true;
     }
-
-    // Resolve any auto-bid conflicts
-    await processAutoBids(itemId, io);
-
-    return res.status(201).json({
-      success: true,
-      message: "Bid placed successfully",
-      data: newBid,
-    });
-  } catch (error) {
-    console.error("Error creating bid:", error);
-    return res.status(500).json({
-      message: "Server error while placing bid",
-      error: error.message,
-    });
   }
 }
 
@@ -79,14 +59,15 @@ async function createBid(req, res) {
     const bidderId = req.user._id;
     const { amount, isAutoBid, maxBidLimit } = req.body;
     const itemId = req.params.itemId;
+    const io = req.app.get("io");
 
-    // 1. Verify target item existence
+    // Verify item existence
     const targetItem = await Item.findById(itemId);
     if (!targetItem) {
       return res.status(404).json({ message: "Item not found" });
     }
 
-    // 2. Check if auction is ended
+    // Check if auction is ended
     const isAuctionEnded =
       targetItem.status === "Ended" ||
       new Date(targetItem.endDate) <= new Date();
@@ -95,14 +76,14 @@ async function createBid(req, res) {
       return res.status(400).json({ message: "This auction has ended" });
     }
 
-    // 3. Prevent owner from bidding on their own item
+    // Prevent owner from bidding on their own item
     if (String(targetItem.owner) === String(bidderId)) {
       return res
         .status(400)
         .json({ message: "You cannot bid on your own item" });
     }
 
-    // 4. Calculate minimum bid required
+    // Determine minimum required initial bid
     const highestBid = await Bid.findOne({ item: itemId }).sort({ amount: -1 });
     const minimumRequiredBid = highestBid
       ? Number(highestBid.amount) + MinIncr
@@ -115,19 +96,27 @@ async function createBid(req, res) {
       return res.status(400).json({
         message: highestBid
           ? `Bid must be at least $${MinIncr} higher than current bid ($${highestBid.amount}). Minimum required bid is $${minimumRequiredBid}.`
-          : `Bid must be at least the starting price ($${minimumRequiredBid}).`,
+          : `Bid must be at least starting price ($${minimumRequiredBid}).`,
       });
     }
 
-    // Validate max bid limit if auto-bidding is enabled
-    if (isAutoBid && (!numericMaxBid || numericMaxBid < numericAmount)) {
-      return res.status(400).json({
-        message:
-          "Maximum bid limit must be equal to or greater than initial bid amount.",
-      });
+    // If auto-bid enabled, save or update record using AutoBid schema fields (`user`, `maxLimit`)
+    if (isAutoBid) {
+      if (!numericMaxBid || numericMaxBid < numericAmount) {
+        return res.status(400).json({
+          message:
+            "Max bid limit must be equal to or greater than initial bid amount.",
+        });
+      }
+
+      await AutoBid.findOneAndUpdate(
+        { item: itemId, user: bidderId },
+        { maxLimit: numericMaxBid },
+        { upsert: true, new: true },
+      );
     }
 
-    // 5. Create new bid document
+    // Create user's manual or starting bid entry
     const newBid = await Bid.create({
       item: itemId,
       bidder: bidderId,
@@ -138,19 +127,27 @@ async function createBid(req, res) {
 
     await newBid.populate("bidder", "username");
 
-    // 6. Update item current price
-    await Item.findByIdAndUpdate(
-      itemId,
-      { currentPrice: numericAmount },
-      { new: true },
-    );
+    await Item.findByIdAndUpdate(itemId, { currentPrice: numericAmount });
 
-    // 7. Emit live socket update to room
-    const io = req.app.get("io");
     if (io) {
       io.to(String(itemId)).emit("bid_updated", newBid);
     }
-  } catch (err) {}
+
+    // Trigger incremental auto-bidding engine
+    await processAutoBids(itemId, io);
+
+    return res.status(201).json({
+      success: true,
+      message: "Bid placed successfully",
+      data: newBid,
+    });
+  } catch (err) {
+    console.error("Error creating bid:", err);
+    return res.status(500).json({
+      message: "Server error while placing bid",
+      error: err.message,
+    });
+  }
 }
 
 async function getBidsByItem(req, res) {
@@ -158,7 +155,7 @@ async function getBidsByItem(req, res) {
     const itemId = req.params.itemId;
     const bids = await Bid.find({ item: itemId })
       .populate("bidder", "username")
-      .sort({ amount: -1 });
+      .sort({ createdAt: -1 });
 
     return res.status(200).json(bids);
   } catch (error) {
@@ -172,7 +169,7 @@ async function placeBid(req, res) {
   if (io) {
     io.to(String(req.params.itemId)).emit("bid_updated", {});
   }
-  res.status(201).json({ success: true });
+  return res.status(201).json({ success: true });
 }
 
 module.exports = {
