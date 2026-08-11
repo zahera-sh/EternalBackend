@@ -1,6 +1,6 @@
 const User = require('../models/User')
 const Bid = require('../models/Bid')
-
+const Item = require('../models/Item')
 
 async function allUsers(req, res) {
     try {
@@ -21,6 +21,10 @@ async function deleteUser(req, res) {
         }
 
         const deletedUser = await User.findByIdAndUpdate(req.params.userId, { isDeleted: true }, { new: true })
+        const hideItems = await Item.updateMany(
+            { owner: deletedUser._id },
+            { isDeleted: true }
+        );
         return res.status(200).json({ deletedUser })
 
     } catch (error) {
