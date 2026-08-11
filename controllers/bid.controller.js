@@ -67,6 +67,14 @@ async function createBid(req, res) {
       return res.status(404).json({ message: "Item not found" });
     }
 
+
+
+    if (new Date(targetItem.auctionEnd).getTime() < Date.now()) {
+
+      await Item.findByIdAndUpdate(targetItem._id , {status : "Ended"})
+      // await targetItem.save();
+    }
+
     // Check if auction is ended
     const isAuctionEnded =
       targetItem.status === "Ended" ||

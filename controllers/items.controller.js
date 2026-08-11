@@ -2,6 +2,16 @@ const Item = require("../models/Item");
 const router = require("express").Router();
 const cloudinary = require("../middleware/cloudinary");
 
+async function updateStatusByDate(item) {
+
+    if (new Date(item.auctionEnd).getTime() <= Date.now()) {
+        await Item.findByIdAndUpdate(item._id, { status: "Ended" })
+    }
+
+    if (new Date(item.auctionStart).getTime() >= Date.now()) {
+        await Item.findByIdAndUpdate(item._id, { status: "Starting Soon" })
+    }
+}
 
 const uploadImage = (fileBuffer) => {
     return new Promise((resolve, reject) => {
@@ -54,6 +64,11 @@ async function createItem(req, res) {
             owner: req.user._id,
         });
 
+        if (new Date(createdItem.auctionStart).getTime() > Date.now()) {
+            createdItem.status = "Starting Soon";
+            await createdItem.save();
+        }
+
         res.status(201).json(createdItem);
     } catch (err) {
         console.log(err);
@@ -62,10 +77,9 @@ async function createItem(req, res) {
         });
     }
 }
-
 async function getAllItems(req, res) {
     try {
-        const allItems = await Item.find({ isDeleted: false });
+        const allItems = await Item.find({ isDeleted: false }).populate('owner')
 
         res.status(200).json(allItems);
     } catch (err) {
@@ -83,6 +97,8 @@ async function getItemById(req, res) {
         if (!item) {
             return res.status(404).json({ message: "Item not found" });
         }
+
+        updateStatusByDate(item)
 
         res.status(200).json(item);
     } catch (err) {
