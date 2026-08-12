@@ -5,12 +5,13 @@ const createTransporter = require('../middleware/nodemailer')
 
 async function createNotification(req, res) {
     try {
-        const { recipient, subject, message } = req.body
+        const { recipient, subject, message, item } = req.body
 
         const createdEmail = await Notification.create({
             recipient,
             subject,
-            message
+            message,
+            item
         })
         const getUser = await User.findById(recipient)
 

@@ -1,7 +1,9 @@
 const Item = require("../models/Item");
 const router = require("express").Router();
 const cloudinary = require("../middleware/cloudinary");
-
+const Notification = require('../models/Notification')
+const Bid = require('../models/Bid')
+const createTransporter = require('../middleware/nodemailer')
 
 async function updateStatusByDate(item) {
 
@@ -12,8 +14,19 @@ async function updateStatusByDate(item) {
     if (new Date(item.auctionStart).getTime() >= Date.now()) {
         await Item.findByIdAndUpdate(item._id, { status: "Starting Soon" })
     }
-}
 
+    if (new Date(item.auctionEnd).getTime() < Date.now()) {
+        const lastBid = await Bid.findOne({ item: item._id })
+            .sort({ amount: -1 });
+
+        if (lastBid) {
+            await Item.findByIdAndUpdate(item._id, {
+                status: "Sold",
+                latestPrice: lastBid.bidder
+            });
+        }
+    }
+}
 const uploadImage = (fileBuffer) => {
     return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
@@ -70,6 +83,99 @@ async function createItem(req, res) {
             await createdItem.save();
         }
 
+        const email = await Notification.create({
+            recipient: req.user._id,
+            item: createdItem._id,
+            subject: "Your Item Has Been Listed",
+            message: `
+        <div style="
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px;
+            color: #2c2c2c;
+            background-color: #faf9f6;
+        ">
+            <div style="
+                text-align: center;
+                margin-bottom: 30px;
+            ">
+                <h1 style="
+                    margin: 0;
+                    font-size: 28px;
+                    font-weight: 500;
+                    letter-spacing: 2px;
+                ">
+                    ETERNAL
+                </h1>
+
+                <p style="
+                    margin: 8px 0 0;
+                    font-size: 12px;
+                    letter-spacing: 2px;
+                    color: #777;
+                ">
+                    PIECES BEYOND TIME
+                </p>
+            </div>
+
+            <div style="
+                background: #ffffff;
+                padding: 30px;
+                border: 1px solid #e5e1da;
+                text-align: center;
+            ">
+                <h2 style="
+                    margin: 0 0 15px;
+                    font-size: 22px;
+                    font-weight: 500;
+                ">
+                    Your Item Has Been Listed
+                </h2>
+
+                <p style="
+                    font-size: 15px;
+                    line-height: 1.7;
+                    color: #555;
+                    margin: 0 0 20px;
+                ">
+                    Your item
+                    <strong>"${createdItem.title}"</strong>
+                    has been successfully listed on Eternal.
+                </p>
+
+                <p style="
+                    margin: 0;
+                    font-size: 13px;
+                    color: #888;
+                ">
+                    Your auction is now ready for bidders.
+                </p>
+            </div>
+
+            <p style="
+                text-align: center;
+                margin-top: 30px;
+                font-size: 12px;
+                color: #999;
+            ">
+                Thank you for choosing Eternal.
+            </p>
+        </div>
+    `
+        });
+        console.log(req.user.email)
+        const { transporter, user } = await createTransporter()
+
+        const info = await transporter.sendMail({
+            from: user,
+            to: req.user.email,
+            subject: email.subject,
+            text: email.message,
+            html: `<p>${email.message}</p>`,
+        })
+
+
         res.status(201).json(createdItem);
     } catch (err) {
         console.log(err);
@@ -78,6 +184,7 @@ async function createItem(req, res) {
         });
     }
 }
+
 async function getAllItems(req, res) {
     try {
         const allItems = await Item.find({ isDeleted: false }).populate('owner')
