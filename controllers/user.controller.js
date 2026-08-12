@@ -19,7 +19,7 @@ async function getAllProfile(req, res) {
         const myBids = await Bid.find({ bidder: req.user._id })
             .populate("item", "title image startingPrice auctionStart auctionEnd status owner").populate("bidder", "username");
 
-        res.status(200).json({user, myItems, favouritedItems, myBids});
+        res.status(200).json({ user, myItems, favouritedItems, myBids });
 
     } catch (err) {
 
