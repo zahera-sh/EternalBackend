@@ -12,7 +12,4 @@ router.delete("/:id", verifyToken, itemsController.deleteItem);
 router.post("/:id/like", verifyToken, itemsController.favItem);
 router.post("/:id/dislike", verifyToken, itemsController.UnfavItem);
 
-// router.put("/:id", verifyToken, itemsController.updateItem);
-
-
 module.exports = router;
