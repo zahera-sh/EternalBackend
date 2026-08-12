@@ -1,12 +1,6 @@
-// config/multer.js
+const multer = require("multer");
 
-const multer = require('multer')
-
-const allowedImageTypes = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-]
+const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -17,13 +11,11 @@ const upload = multer({
 
   fileFilter: (req, file, callback) => {
     if (allowedImageTypes.includes(file.mimetype)) {
-      callback(null, true)
+      callback(null, true);
     } else {
-      callback(
-        new Error('Only JPG, PNG, and WebP images are allowed.')
-      )
+      callback(new Error("Only JPG, PNG, and WebP images are allowed."));
     }
   },
-})
+});
 
-module.exports = upload
+module.exports = upload;
