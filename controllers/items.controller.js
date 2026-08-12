@@ -164,7 +164,6 @@ async function createItem(req, res) {
         </div>
     `
         });
-        console.log(req.user.email)
         const { transporter, user } = await createTransporter()
 
         const info = await transporter.sendMail({
@@ -282,8 +281,6 @@ async function filterItems(req, res) {
         if (req.query.title) {
             filter.title = { $regex: req.query.title, $options: "i" };
         }
-
-        console.log(filter);
 
         const allItems = await Item.find({ ...filter, isDeleted: false }).populate("owner");
 
