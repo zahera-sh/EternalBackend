@@ -2,6 +2,7 @@ const Item = require("../models/Item");
 const router = require("express").Router();
 const cloudinary = require("../middleware/cloudinary");
 
+
 async function updateStatusByDate(item) {
 
     if (new Date(item.auctionEnd).getTime() <= Date.now()) {
@@ -186,6 +187,7 @@ async function filterItems(req, res) {
     }
 }
 
+
 module.exports = {
     createItem,
     getAllItems,
@@ -194,27 +196,5 @@ module.exports = {
     deleteItem,
     favItem,
     UnfavItem,
-    filterItems
+    filterItems,
 };
-
-// async function updateItem(req, res) {
-//   try {
-//     const item = await Item.findById(req.params.id)
-
-//     if (!item) {
-//       return res.status(404).json({ message: "Item not found" })
-//     }
-
-//     if (item.owner.toString() !== req.user._id.toString()) {
-//       return res.status(403).json({ message: "Unauthorized action" })
-//     }
-
-//     const updatedItem = await Item.findByIdAndUpdate(req.params.id, req.body, {
-//       new: true,
-//     })
-
-//     res.status(200).json(updatedItem)
-//   } catch (err) {
-//     res.status(500).json({ message: err.message })
-//   }
-// }
