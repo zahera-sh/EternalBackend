@@ -64,7 +64,6 @@ afterAll(async () => {
   await mongoose.connection.close();
 });
 
-// Helpers
 const generateToken = (user) => {
   return jwt.sign(
     {
@@ -94,7 +93,6 @@ const createDummyItem = async (overrideProps = {}) => {
 };
 
 describe("App Integration Tests", () => {
-  // 1. AUTH ROUTES (/auth)
   describe("Auth Routes", () => {
     describe("POST /auth/sign-up", () => {
       test("creates a new user", async () => {
@@ -164,7 +162,6 @@ describe("App Integration Tests", () => {
     });
   });
 
-  // 2. ADMIN ROUTES (/admin)
   describe("Admin Routes", () => {
     describe("GET /admin/all-users", () => {
       test("returns users with role 'User'", async () => {
@@ -225,7 +222,6 @@ describe("App Integration Tests", () => {
     });
   });
 
-  // 3. ITEM ROUTES (/items)
   describe("Item Routes", () => {
     describe("POST /items", () => {
       test("creates new item with image upload", async () => {
@@ -270,8 +266,6 @@ describe("App Integration Tests", () => {
       });
     });
   });
-
-  // 4. BID ROUTES (/bid)
 
   describe("Bid Routes", () => {
     describe("POST /bid/:itemId/bids", () => {
@@ -328,8 +322,6 @@ describe("App Integration Tests", () => {
     });
   });
 
-  // 5. NOTIFICATION ROUTES (/Notification)
-
   describe("Notification Routes", () => {
     describe("POST /Notification", () => {
       test("creates notification and sends email", async () => {
@@ -354,7 +346,6 @@ describe("App Integration Tests", () => {
     });
   });
 
-  // 6. USER/PROFILE ROUTES (/user)
   describe("Profile Routes", () => {
     describe("GET /user/dashboard", () => {
       test("returns full user profile state", async () => {

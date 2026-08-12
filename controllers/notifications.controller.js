@@ -25,7 +25,7 @@ async function createNotification(req, res) {
             html: `<p>${createdEmail.message}</p>`,
         })
 
-        console.log("Message sent: %s", info.messageId)
+        // console.log("Message sent: %s", info.messageId)
 
         return res.status(201).json({
             message: 'Notification created and email sent',

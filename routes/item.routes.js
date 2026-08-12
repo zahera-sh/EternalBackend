@@ -3,12 +3,7 @@ const verifyToken = require("../middleware/verifyToken");
 const itemsController = require(`../controllers/items.controller`);
 const upload = require("../middleware/multer");
 
-router.post(
-  "/",
-  upload.single("image"),
-  verifyToken,
-  itemsController.createItem,
-);
+router.post("/", upload.single("image"), verifyToken, itemsController.createItem,);
 router.get("/", itemsController.getAllItems);
 router.get("/filter", itemsController.filterItems);
 router.get("/my-items", verifyToken, itemsController.getMyItems);
