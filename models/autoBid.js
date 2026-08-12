@@ -25,6 +25,7 @@ const autoBidSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+
 autoBidSchema.index({ item: 1, user: 1 }, { unique: true });
 
 const AutoBid = mongoose.model("AutoBid", autoBidSchema);
