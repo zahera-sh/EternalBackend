@@ -1,6 +1,6 @@
 const Bid = require("../models/Bid");
 const Item = require("../models/Item");
-const AutoBid = require("../models/AutoBid");
+const AutoBid = require("../models/autoBid");
 
 const MinIncr = 100;
 
