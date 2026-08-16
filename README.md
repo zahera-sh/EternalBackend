@@ -8,9 +8,9 @@ This repository contains the Node.js, Express and MongoDB backend for **Eternal 
 
 
 ## Related Links
-- **Backend API:** Deployed Backend URL
-- **Frontend Application:** Deployed Frontend URL
-- **Frontend Repository:** [Frontend Github Repository URL](https://github.com/zahera-sh/EternalFrontend)
+- **Backend API:** [Deployed Backend](https://eternalbackend-6qqp.onrender.com/)
+- **Frontend Application:**  [Deployed Frontend](https://eternalauctionhouse.netlify.app/items)
+- **Frontend Repository:** [Frontend Github Repository](https://github.com/zahera-sh/EternalFrontend)
 
 
 ## Technologies Used
